@@ -7,6 +7,14 @@
   <version>1.0-SNAPSHOT</version>
   <name>cake-manager Maven Webapp</name>
   <url>http://maven.apache.org</url>
+  
+ <properties>
+   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+   <maven.compiler.source>1.8</maven.compiler.source>
+   <maven.compiler.target>1.8</maven.compiler.target>
+   <maven.compiler.release>1.8</maven.compiler.release>
+  </properties>
+  
   <dependencies>
 
       <!-- Servlet -->
@@ -14,14 +22,23 @@
           <groupId>javax.servlet</groupId>
           <artifactId>javax.servlet-api</artifactId>
           <version>3.1.0</version>
+          <scope>provided</scope>
       </dependency>
 
       <!-- JSON -->
+      <!-- 
       <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
-          <version>2.8.0</version>
+          <version>2.12.4</version>
       </dependency>
+       -->
+	<dependency>
+	    <groupId>com.fasterxml.jackson.core</groupId>
+	    <artifactId>jackson-databind</artifactId>
+	    <version>2.12.4</version>
+	</dependency>
+      
 
       <!-- JPA -->
       <dependency>
@@ -37,13 +54,37 @@
           <version>2.3.4</version>
       </dependency>
 
+    <!-- logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.30</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+
+
+<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-server -->
+<!-- 
+<dependency>
+    <groupId>org.glassfish.jersey.core</groupId>
+    <artifactId>jersey-server</artifactId>
+    <version>3.0.2</version>
+</dependency>
+ -->
+
+
       <!-- Test dependencies. -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.1</version>
-      <scope>test</scope>
-    </dependency>
+	<dependency>
+	    <groupId>org.junit.jupiter</groupId>
+	    <artifactId>junit-jupiter</artifactId>
+	    <version>5.7.0</version>
+	    <scope>test</scope>
+	</dependency>
 
   </dependencies>
   <build>
@@ -62,6 +103,9 @@
         <plugin>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-maven-plugin</artifactId>
+            <version>10.0.5</version>
+            <!--TODO version 11 does not find the annotated servlets! -->
+
             <configuration>
                 <scanIntervalSeconds>10</scanIntervalSeconds>
                 <stopKey>STOP</stopKey>
@@ -71,6 +115,17 @@
                 </httpConnector>
             </configuration>
         </plugin>
+
+<!-- 
+       <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-war-plugin</artifactId>
+         <version>3.0.0</version>
+         <configuration>
+           <failOnMissingWebXml>false</failOnMissingWebXml>
+         </configuration>
+       </plugin>
+ -->
 
     </plugins>
   </build>

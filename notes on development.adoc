@@ -1,0 +1,47 @@
+= Notes
+
+I have approached this exercise with a broader consideration--how we can make this kind of system easier to build. I am assuming that it would never be a simple one list application and that before long there would be a myriad of entities and we would be writing endless templates to view them and to update the items, and other controllers for making the data accessible and manageable via a REST API.
+
+To avoid the repeated work that this entails, and the often introduced inconsistencies that this introduces, I have create the beginnings of a system that automatically builds the UI and API from the entity classes, reducing the work in the long run as requirements expand and thus ensuring consistency in expectations and use. 
+
+I have probably spent too much time on this, but it reflects how I approach a problem, looking not just at the immediate needs but considering the broader ones, often unexpressed, or possible not yet considered. Not to mention that I hate to write the endless classes with very similar code.
+
+
+
+== Approach
+
+The idea here is to use Java's reflection capabilities (in the `com.waracle.cakemgr.model` classes) to determine the properties of each entity. The same servlets (DataServlet, ListServlet and AddEntryServlet) can then use the generated model to reflectively retrieve or set the instances' states and prepare the response for the browser or REST client.
+
+So, for example, the ListServlet, uses the class name that was appended to the path to look up the model object for that type. For each instance retrieved from the database--via Hibernate--the model is then used to get each field's name and value. This is then added to an HTMM table element using a simple page builder, which allows reliable and consistent HTML to be generated. When we create the values for each cell in the table we hit an issue that we need to solve in an extensible manner, where the value of the entity's field might not be of the right type for table (so not a String that is a title). This is the case for the image URL, which we want to see as a graphic in our table. One way to solve this is to have a helper class that can create the appropriate cell content for the specific fields or Java types. I have create the ValueHandler, which looks for the _image_ field within the _CakeEntity_ class and creates an _img_ element with the necessary _href_ parameter. For all others types and fields, at the moment, the object's String representation is used (in a manner where nulls don't cause a problem).
+
+
+
+== In action
+
+The `CakeServlet` class has been corrected but not changed. It is accessed, as before using http://localhost:8282/cakes. More importantly, itwas kept to ensure the example data is loaded up at startup.
+
+
+.REST access
+
+The new mechanism for REST access (`DataServlet`) is available at http://localhost:8282/data. This actually retrieves no data as it is generic and needs to know what entity is required. So to get a list of all the cakes use http://localhost:8282/data/cake. To access any other entities change the class name to that which it was registered as (in this case in the `init()` method in `CakeServlet`, for example 
+
+            Model.register(CakeEntity.class, "cake");
+    
+As an example, I added a second entity class (`ExampleEntity`) with the name _example_. To get a list of the example instances use http://localhost:8282/data/example.
+
+The `DataServlet` also support the HTTP PUT method as a way of adding entities. The following curl command will add a new cake (using the existing image as one of the other cakes):
+
+    curl -X PUT -v http://localhost:8282/data/cake -d '{
+           "description" : "Another cake made with lemon",
+           "title" : "Ma\'s Lemon drizzle cake",
+           "image" : "https://s3-eu-west-1.amazonaws.com/s3.mediafileserver.co.uk/carnation/WebFiles/RecipeImages/lemoncheesecake_lg.jpg"
+    
+
+
+.Browsing entities
+
+The views, from the browser, are provided by two other servlets, again independent of the entity types,--`ListServlet` and `AddEntryServlet`. To list the cakes and example objects use http://localhost:8282/ui/list/cake and http://localhost:8282/ui/list/example. Again the class is appended to the path and the servlet constructs the view dependent on the entity's fields. This shows a table of all instances of that class and the image URL is used to display the picture. A link at the top takes you to an add view.
+
+Again the add view uses the model to determine what inputs to provide in the form. Adding a cake will work, but the the new example entity won't. The reason being that the date is defined as a LocalDate class and, as of yet, there is no mechanism in place to take a text input and convert it to an instance of LocalDate (as was done for the output using the `ValueHandler` class). The third field will cause even bigger problems as in this case we need so way of selecting a cake object and passing over a reference to it.
+
+
